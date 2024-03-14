@@ -1,0 +1,17 @@
+.login-form {
+    max-width: 300px;
+    margin: auto;
+    padding-top: 30vh;
+}
+
+.ant-col-rtl {
+    float: left;
+}
+
+.login-form-button {
+    width: 100%;
+}
+/* 
+.modal-backdrop{
+    display: none;
+} */

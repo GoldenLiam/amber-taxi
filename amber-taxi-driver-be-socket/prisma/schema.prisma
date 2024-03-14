@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URLDB4FREE")
+}
+
+model CallCenterAgent {
+  uuid   String  @id @db.VarChar(256)
+  userId String  @db.VarChar(256)
+  state  Boolean @default(false)
+  User   User    @relation(fields: [userId], references: [uuid], onDelete: Cascade, onUpdate: NoAction, map: "CallCenterAgent_ibfk_1")
+
+  @@index([userId], map: "userId")
+}
+
+model CarModel {
+  uuid             String        @id @db.VarChar(256)
+  modelName        String        @db.VarChar(64)
+  modelDescription String?       @db.VarChar(256)
+  manufactureYear  DateTime      @db.Date
+  color            String?       @db.VarChar(12)
+  licensePlate     String        @db.VarChar(12)
+  DriverShift      DriverShift[]
+}
+
+model Customer {
+  uuid   String  @id @db.VarChar(256)
+  userId String? @db.VarChar(256)
+  User   User?   @relation(fields: [userId], references: [uuid], onDelete: Cascade, onUpdate: NoAction, map: "Customer_ibfk_1")
+
+  @@index([userId], map: "userId")
+}
+
+model Driver {
+  uuid                 String   @id @db.VarChar(256)
+  userId               String   @db.VarChar(256)
+  drivingLicenceNumber String   @db.VarChar(12)
+  expiryDate           DateTime @db.Date
+  state                Boolean  @default(false)
+  User                 User     @relation(fields: [userId], references: [uuid], onDelete: Cascade, onUpdate: NoAction, map: "Driver_ibfk_1")
+
+  @@index([userId], map: "userId")
+}
+
+model DriverShift {
+  uuid           String       @id @db.VarChar(256)
+  driverId       String       @db.VarChar(256)
+  carId          String       @db.VarChar(256)
+  shiftStartTime DateTime     @db.DateTime(0)
+  shiftEndTime   DateTime     @db.DateTime(0)
+  User           User         @relation(fields: [driverId], references: [uuid], onDelete: Cascade, onUpdate: NoAction, map: "DriverShift_ibfk_1")
+  CarModel       CarModel     @relation(fields: [carId], references: [uuid], onDelete: Cascade, onUpdate: NoAction, map: "DriverShift_ibfk_2")
+  RideStatus     RideStatus[]
+
+  @@index([carId], map: "carId")
+  @@index([driverId], map: "driverId")
+}
+
+model Ride {
+  uuid                    String    @id @db.VarChar(256)
+  customerName            String    @db.VarChar(256)
+  rideStarTime            DateTime  @default(now()) @db.DateTime(0)
+  rideEndTime             DateTime? @db.DateTime(0)
+  addressStartingPoint    String    @db.Char(12)
+  gpsStartingPoint        String?   @db.VarChar(12)
+  addressDestinationPoint String    @db.VarChar(12)
+  gpsDestinationPoint     String?   @db.VarChar(12)
+  price                   Int?
+  User                    User      @relation(fields: [customerName], references: [uuid], onDelete: Cascade, onUpdate: NoAction, map: "Ride_ibfk_1")
+
+  @@index([customerName], map: "customerId")
+}
+
+model RideStatus {
+  uuid          String      @id @db.VarChar(256)
+  driverId      String      @db.VarChar(256)
+  driverShiftId String      @db.VarChar(256)
+  state         Boolean     @default(false)
+  stateTime     DateTime    @db.DateTime(0)
+  stateDetail   String?     @db.VarChar(256)
+  User          User        @relation(fields: [driverId], references: [uuid], onDelete: Cascade, onUpdate: NoAction, map: "RideStatus_ibfk_1")
+  DriverShift   DriverShift @relation(fields: [driverShiftId], references: [uuid], onDelete: Cascade, onUpdate: NoAction, map: "RideStatus_ibfk_2")
+
+  @@index([driverId], map: "driverId")
+  @@index([driverShiftId], map: "driverShiftId")
+}
+
+model User {
+  uuid            String            @id @db.VarChar(256)
+  firstName       String            @db.VarChar(64)
+  lastName        String            @db.VarChar(64)
+  gender          String?           @db.VarChar(6)
+  address         String            @db.VarChar(256)
+  phone           String            @unique(map: "phone") @db.VarChar(11)
+  email           String            @unique(map: "email") @db.VarChar(128)
+  password        String            @db.VarChar(128)
+  role            String            @db.VarChar(12)
+  dob             DateTime          @db.Date
+  cic             String            @unique(map: "cic") @db.VarChar(12)
+  online          Boolean           @default(false)
+  createdAt       DateTime?         @default(now()) @db.DateTime(0)
+  CallCenterAgent CallCenterAgent[]
+  Customer        Customer[]
+  Driver          Driver[]
+  DriverShift     DriverShift[]
+  Ride            Ride[]
+  RideStatus      RideStatus[]
+}

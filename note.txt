@@ -1,0 +1,30 @@
+Bước 1:
+_Vào lần lượt các folder sau và chạy lệnh "npm install":
+	+ amber-taxi-be
+	+ amber-taxi-call-center
+	+ amber-taxi-customer
+	+ amber-taxi-driver
+	+ socket-calling-server
+	+ socket-message-server
+	+ socket-transportation-server
+
+_ Mở xampp và import file amber-taxi-be/amber_taxi.sql
+
+Bước 2 (lưu ý phải chạy theo đúng thứ tự):
+
+_ Nhóm chạy đầu tiên
+	+ Vào folder amber-taxi-be chạy lệnh "npm run dev:start"
+
+_Nhóm chạy thứ hai
+	+ Vào folder socket-calling-server chạy lệnh "npm run dev:start"
+	+ Vào folder socket-message-server chạy lệnh "npm run dev:start"
+	+ Vào folder socket-transportation-server chạy lệnh "npm run dev:start"
+
+_Nhóm chạy thứ ba
+	+ Vào folder amber-taxi-call-center chạy lệnh "npm start"
+	+ Vào folder amber-taxi-customer chạy lệnh "npm start"
+	+ Vào folder amber-taxi-driver chạy lệnh "npm start"
+
+Bước 3:
+_ Demo khách hàng vãng lai
+_ Demo khách hàng sử dụng web app

@@ -1,0 +1,2 @@
+export { goOnline, goOffline, getDriverStateFromServer, updateCoords, selectDriverState } from "./DriverState/DriverStateSlice";
+export { default as driverStateReducer } from "./DriverState/DriverStateSlice";

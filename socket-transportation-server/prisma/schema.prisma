@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_LOCALHOST")
+}
+
+model call {
+  uuid                         String    @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
+  userCallId                   String    @db.VarChar(256)
+  userAnswerId                 String    @db.VarChar(256)
+  beginCallingTime             DateTime  @default(now()) @db.DateTime(0)
+  endCallingTime               DateTime? @db.DateTime(0)
+  callingStatus                String    @db.VarChar(16)
+  user_call_userCallIdTouser   user      @relation("call_userCallIdTouser", fields: [userCallId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "call_ibfk_1")
+  user_call_userAnswerIdTouser user      @relation("call_userAnswerIdTouser", fields: [userAnswerId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "call_ibfk_2")
+
+  @@index([userAnswerId], map: "userAnswerId")
+  @@index([userCallId], map: "userCallId")
+}
+
+model callcenteragent {
+  uuid   String  @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
+  userId String  @db.VarChar(256)
+  state  Boolean @default(false)
+  user   user    @relation(fields: [userId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "callcenteragent_ibfk_1")
+
+  @@index([userId], map: "userId")
+}
+
+model car {
+  uuid             String        @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
+  modelName        String        @db.VarChar(64)
+  modelDescription String?       @db.VarChar(256)
+  manufactureYear  DateTime      @db.Date
+  seat             Int           @default(2) @db.TinyInt
+  color            String?       @db.VarChar(12)
+  carImage         String        @db.VarChar(64)
+  licensePlate     String        @unique(map: "licensePlate") @db.VarChar(12)
+  drivershift      drivershift[]
+}
+
+model customer {
+  uuid   String  @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
+  userId String? @db.VarChar(256)
+  user   user?   @relation(fields: [userId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "customer_ibfk_1")
+
+  @@index([userId], map: "userId")
+}
+
+model driver {
+  uuid                 String   @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
+  userId               String   @db.VarChar(256)
+  drivingLicenceNumber String   @db.VarChar(12)
+  expiryDate           DateTime @db.Date
+  state                String   @default("OFFLINE") @db.VarChar(12)
+  user                 user     @relation(fields: [userId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "driver_ibfk_1")
+
+  @@index([userId], map: "userId")
+}
+
+model drivershift {
+  uuid           String       @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
+  driverId       String       @db.VarChar(256)
+  carId          String       @db.VarChar(256)
+  shiftStartTime DateTime     @db.DateTime(0)
+  shiftEndTime   DateTime     @db.DateTime(0)
+  createdAt      DateTime?    @default(now()) @db.DateTime(0)
+  user           user         @relation(fields: [driverId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "drivershift_ibfk_1")
+  car            car          @relation(fields: [carId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "drivershift_ibfk_2")
+  ridestatus     ridestatus[]
+
+  @@index([carId], map: "carId")
+  @@index([driverId], map: "driverId")
+}
+
+model message {
+  uuid                          String   @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
+  rideId                        String   @db.VarChar(256)
+  senderId                      String   @db.VarChar(256)
+  receiverId                    String   @db.VarChar(256)
+  sendingTime                   DateTime @default(now()) @db.DateTime(0)
+  message                       String   @db.VarChar(256)
+  ride                          ride     @relation(fields: [rideId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "message_ibfk_1")
+  user_message_senderIdTouser   user     @relation("message_senderIdTouser", fields: [senderId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "message_ibfk_2")
+  user_message_receiverIdTouser user     @relation("message_receiverIdTouser", fields: [receiverId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "message_ibfk_3")
+
+  @@index([receiverId], map: "receiverId")
+  @@index([rideId], map: "rideId")
+  @@index([senderId], map: "senderId")
+}
+
+model rating {
+  uuid                       String   @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
+  rideId                     String   @db.VarChar(256)
+  driverId                   String   @db.VarChar(256)
+  userId                     String   @db.VarChar(256)
+  ratingComment              String?  @db.Text
+  ratingTag                  String?  @db.VarChar(128)
+  ratingValue                Int
+  ratingTime                 DateTime @default(now()) @db.DateTime(0)
+  ride                       ride     @relation(fields: [rideId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "rating_ibfk_1")
+  user_rating_driverIdTouser user     @relation("rating_driverIdTouser", fields: [driverId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "rating_ibfk_2")
+  user_rating_userIdTouser   user     @relation("rating_userIdTouser", fields: [userId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "rating_ibfk_3")
+
+  @@index([driverId], map: "driverId")
+  @@index([rideId], map: "rideId")
+  @@index([userId], map: "userId")
+}
+
+model ride {
+  uuid             String       @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
+  fullName         String       @db.VarChar(64)
+  gender           String?      @db.VarChar(6)
+  phone            String       @db.VarChar(11)
+  seat             Int          @default(1)
+  rideStartTime    DateTime     @default(now()) @db.DateTime(0)
+  rideEndTime      DateTime?    @db.DateTime(0)
+  startingPoint    String       @db.VarChar(512)
+  destinationPoint String       @db.VarChar(512)
+  distance         Float?       @db.Float
+  price            Int?
+  note             String?      @db.Text
+  message          message[]
+  rating           rating[]
+  ridestatus       ridestatus[]
+}
+
+model ridestatus {
+  uuid          String       @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
+  rideId        String       @db.VarChar(256)
+  driverId      String?      @db.VarChar(256)
+  driverShiftId String?      @db.VarChar(256)
+  state         String       @default("CREATED") @db.VarChar(12)
+  stateTime     DateTime     @default(now()) @db.DateTime(0)
+  stateDetail   String?      @db.VarChar(256)
+  ride          ride         @relation(fields: [rideId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "ridestatus_ibfk_1")
+  user          user?        @relation(fields: [driverId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "ridestatus_ibfk_2")
+  drivershift   drivershift? @relation(fields: [driverShiftId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "ridestatus_ibfk_3")
+
+  @@index([driverId], map: "driverId")
+  @@index([driverShiftId], map: "driverShiftId")
+  @@index([rideId], map: "rideId")
+}
+
+model user {
+  uuid                             String            @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
+  fullName                         String            @db.VarChar(64)
+  gender                           String?           @db.VarChar(6)
+  address                          String            @db.VarChar(256)
+  phone                            String            @unique(map: "phone") @db.VarChar(11)
+  email                            String            @unique(map: "email") @db.VarChar(128)
+  password                         String            @db.VarChar(128)
+  role                             String            @db.VarChar(24)
+  dob                              DateTime          @db.Date
+  cic                              String            @unique(map: "cic") @db.VarChar(12)
+  avatar                           String            @default("avatar_default.png") @db.VarChar(64)
+  createdAt                        DateTime?         @default(now()) @db.DateTime(0)
+  call_call_userCallIdTouser       call[]            @relation("call_userCallIdTouser")
+  call_call_userAnswerIdTouser     call[]            @relation("call_userAnswerIdTouser")
+  callcenteragent                  callcenteragent[]
+  customer                         customer[]
+  driver                           driver[]
+  drivershift                      drivershift[]
+  message_message_senderIdTouser   message[]         @relation("message_senderIdTouser")
+  message_message_receiverIdTouser message[]         @relation("message_receiverIdTouser")
+  rating_rating_driverIdTouser     rating[]          @relation("rating_driverIdTouser")
+  rating_rating_userIdTouser       rating[]          @relation("rating_userIdTouser")
+  ridestatus                       ridestatus[]
+}
