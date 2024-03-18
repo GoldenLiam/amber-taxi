@@ -17,7 +17,7 @@ import { CloseCircleOutlined, FilterOutlined, SmileOutlined, UserOutlined, Appst
 import { Skeleton, Switch, Alert, Card, Button, Result, Typography, Select, Space, Timeline, Steps, Input, Avatar, Segmented, Flex, Empty, Modal, message } from 'antd';
 
 
-import { SocketTransportationContext } from "../../sockets";
+import { SocketTransportationContextForBookingList } from "../../sockets";
 import { calculateDistance, handlingDateTime } from "../../utils";
 import { beAPI } from "../../api";
 
@@ -25,8 +25,8 @@ const { Paragraph, Text } = Typography;
 
 
 function BookingList() {
-    const socketTransportationContext = useContext(SocketTransportationContext);
-    const { myself, updateLocation, updateRideList, rideList, drivershift, rideForUserList, acceptRide, acceptRideResult, acceptRideResultReason } = socketTransportationContext;
+    const socketTransportationContextForBookingList = useContext(SocketTransportationContextForBookingList);
+    const { myself, updateLocation, updateRideList, rideList, drivershift, rideForUserList, acceptRide, acceptRideResult, acceptRideResultReason } = socketTransportationContextForBookingList;
 
     // Biến tọa độ hiện tại của tài xế
     const [currentLatitude, setCurrentLatitude] = useState(0);

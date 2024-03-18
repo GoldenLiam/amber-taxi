@@ -26,6 +26,7 @@ import { ScreenDevices } from '../../constants';
 
 // Socket
 import { SocketTransportationContext } from "../../sockets";
+import { SocketTransportationContextForRegisterTrip } from "../../sockets";
 import { SocketChatingContextProvider } from "../../sockets";
 import { SocketCallingContextProvider } from "../../sockets";
 import { beAPI } from "../../api";
@@ -41,6 +42,9 @@ import { Avatar as AvatarAntd, Card, Skeleton, Dropdown, Form,
 
 // AntD
 import { InputNumber, Radio, TimePicker, DatePicker, Space, Tooltip } from 'antd';
+
+//
+import { handlingCurrency, handlingDateTime } from '../../utils';
 
 const { Meta } = Card;
 
@@ -62,31 +66,19 @@ const myLocationIcon = icon({
 
 function RegiterTrip() {
   // Biến lấy từ context socket
-  const socketTransportationContext = useContext(SocketTransportationContext);
-  const { myself, updateLocation, updateRideList, rideList, 
-    acceptRide, acceptRideResult, acceptRideResultReason, 
-    bookRide,
-    pickRide,
-    pickRideResult,
-    pickRideResultReason,
+  const socketTransportationContextForRegisterTrip = useContext(SocketTransportationContextForRegisterTrip);
+  const { myself, updateLocation, bookRide,
 
-    denyRide,
-    denyRideResult,
-    denyRideResultReason,
+    acceptRideResult, acceptRideResultReason,
 
-    completeRide,
-    completeRideResult,
-    completeRideResultReason } = socketTransportationContext;
+    cancelRide,
+    cancelRideResult,
+    cancelRideResultReason
+  } = socketTransportationContextForRegisterTrip;
 
   // Biến tọa độ hiện tại của tài xế
   const [currentLatitude, setCurrentLatitude] = useState(0);
   const [currentLongitude, setCurrentLongitude] = useState(0);
-
-  // Biến cho điểm đón
-  const [addressStartingPoint, setAddressStartingPoint] = useState(null);
-
-  // Biến cho điểm đến
-  const [addressDestinationPoint, setAddressDestinationPoint] = useState(null);
 
   // Biến map
   const [map, setMap] = useState(null);
@@ -116,27 +108,8 @@ function RegiterTrip() {
     note: null
   });
 
-  // Biến ridestatus
-  const [ridestatus, setRideStatus] = useState({
-    uuid: null,
-    rideId: null,
-    driverId: null,
-    driverShiftId: null,
-    state: null,
-    stateTime: null,
-    stateDetail: null
-  });
-
-  // Biến uuid của ride lấy từ params
-  let { uuid } = useParams();
-
-  /// new
-
+  // Biến form cho tạo cuốc xe
   const [createRideForm] = Form.useForm();
-  
-  // Biến latitude và longitude mặc định
-  const [latitude, setLatitude] = useState(11.142451414209289); //latitude of Saigon River
-  const [longitude, setLongitude] = useState(106.50830205050272); //longitude of Saigon River
 
   // Biến cho điểm đón
   const [addressStartingPointData, setAddressStartingPointData] = useState([]);
@@ -239,7 +212,7 @@ function RegiterTrip() {
         })
 
 
-        // Nếu điểm dón bị rỗng sẽ gọi API set ngay cho điểm đón
+        // Nếu điểm đón bị rỗng sẽ gọi API set ngay cho điểm đón là vị trí hiện tại
         if (!addressStartingPointValue){
           let currentAddressResponse = await fetch(`https://nominatim.openstreetmap.org/reverse.php?lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=12&format=jsonv2`).then(res => res.json())
           let currentAddress =`${position.coords.latitude};${position.coords.longitude};${currentAddressResponse.display_name}`
@@ -285,22 +258,17 @@ function RegiterTrip() {
       }
     }
     
-    createRideForm.setFieldValue("ride-price-input", new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) );
+    /* Set giá chuyến đi */
+    createRideForm.setFieldValue("ride-price-input", handlingCurrency.convertFloatNumberToVNDFormat(price));
 
-    /* Tính thời gian */
-    let totalSeconds = e.routes[0].summary.totalTime;
-    let hours = Math.floor(totalSeconds / 3600);
-    totalSeconds %= 3600;
-    let minutes = Math.floor(totalSeconds / 60);
-    let seconds = totalSeconds % 60;
-
-    createRideForm.setFieldValue("ride-time-input", `${hours.toFixed(0)}:${minutes.toFixed(0)}:${seconds.toFixed(0)}`);
+    /* Set thời gian */
+    createRideForm.setFieldValue("ride-time-input", handlingDateTime.convertSecondToHMSTimeFormat(e.routes[0].summary.totalTime) );
   }
 
   // Hàm submit
   const submitCreateRideForm = async () => {
     let ride = {
-      fullName: createRideForm.getFieldValue("customer-name-input"),
+      fullName: createRideForm.getFieldValue("customer-name-input") == null ? localStorage.getItem("fullName") : createRideForm.getFieldValue("customer-name-input"),
       gender: createRideForm.getFieldValue("customer-gender") == null ? "male" : createRideForm.getFieldValue("customer-gender"),
       phone: createRideForm.getFieldValue("customer-phone-input"),
       seat: createRideForm.getFieldValue("ride-number-seat") == null ? 1 : createRideForm.getFieldValue("ride-number-seat"),
@@ -310,7 +278,8 @@ function RegiterTrip() {
       price: parseInt( createRideForm.getFieldValue("ride-price-input") == null ? 0 : createRideForm.getFieldValue("ride-price-input").replace(/[.₫]/g, '').trim() ),
       note: createRideForm.getFieldValue("customer-note-input")
     }
-    console.log(ride)
+    
+
     // Gọi API để tạo cuốc
     let responseCreateRideData = await beAPI.post('/ride', ride);
     // Không thể tạo cuốc
@@ -339,15 +308,17 @@ function RegiterTrip() {
       return;
     }
 
-    bookRide(responseCreateRidestatusData.data.data.uuid);
-    setRide(responseCreateRidestatusData.data.data);
-    setWaitingForDriver(true); 
+    // gửi uuid ride cho bookRide
+    bookRide( responseCreateRideData.data.data.uuid );
+
+    setRide( responseCreateRideData.data.data );
+    
+    setWaitingForDriver(true);
   }
 
 
 
   useEffect(() => {
-
     // if ( addressStartingPoint == null && addressDestinationPoint == null ) {
     //   getRideInformation();
     // }
@@ -362,7 +333,7 @@ function RegiterTrip() {
       map.setView([currentLatitude, currentLongitude], 15);
 
       //Routing
-      if(addressStartingPointValue && addressDestinationPointValue){
+      if(addressStartingPointValue && addressDestinationPointValue && waitingForDriver == false){
         //Nếu routing trống
         if(!mapRouting){
           var routingMachine = L.Routing.control({
@@ -422,31 +393,31 @@ function RegiterTrip() {
 
     }
 
-    if( ride.uuid != null && pickRideResult == true ){
-      //Tất cả API đều thực thi thành công
+    // Bắt và thực thi sự kiên acceptRideResult
+    if( ride.uuid != null && acceptRideResult == true ){
       messageApi.open({
         type: 'success',
         content: 'Đã có tài xế nhận cuốc chuyển trang trong 2s',
       });
 
-      // Chờ 2s để điều hướng
+      // Chờ 3s để điều hướng
       setTimeout(() => {
         // Điều hướng đến trang chi tiết chuyến đi
         window.location.href = `/trip/${ride.uuid}`;
 
-      }, 2000);
+      }, 3000);
     }
 
     return () => {}
 
-  }, [map, mapRouting, currentLatitude, pickRideResult]);
+  }, [map, mapRouting, currentLatitude, acceptRideResult, addressDestinationPointValue]);
 
   return (
     <>
       {contextHolder}
       <div className="Trip d-flex flex-column" style={{height: '100vh'}}>
 
-        <MenuNavbar />
+        {/* <MenuNavbar />  bỏ đi vì khá chật*/}
 
         {/* {<TripMap className="flex-grow: 1"/>} */}
 
@@ -478,9 +449,7 @@ function RegiterTrip() {
             size="small"
             title="Vui lòng chờ tài xế nhận cuốc"
             extra={
-              <Button type="primary" size="small"
-              data-bs-toggle="offcanvas" data-bs-target="#registerDetailTripOffcanvasRight" aria-controls="registerDetailTripOffcanvasRight"
-              >Hủy đặt cuốc</Button>
+              <Button type="primary" size="small" onClick={() => cancelRide(ride.uuid)}>Hủy đặt cuốc</Button>
             }
           >
             <Flex gap="small" vertical>
@@ -496,9 +465,21 @@ function RegiterTrip() {
             size="small"
             title="Bạn muốn đi đâu"
             extra={
-              <Button type="primary" size="small"
-              data-bs-toggle="offcanvas" data-bs-target="#registerDetailTripOffcanvasRight" aria-controls="registerDetailTripOffcanvasRight"
-              >Đăng ký</Button>
+              <>
+
+                <Space size="middle">
+                  <Button icon={<i class="bi bi-house"></i>} type="default" size="small" href="/">
+                    Trang chủ
+                  </Button>
+
+                  <Button icon={<i class="bi bi-upload"></i>} type="primary" size="small" data-bs-toggle="offcanvas" 
+                  data-bs-target="#registerDetailTripOffcanvasRight" aria-controls="registerDetailTripOffcanvasRight"
+                  >
+                    Đăng ký
+                  </Button>
+                </Space>
+                
+              </>
             }
           >
             <Skeleton loading={false} avatar active>
@@ -510,9 +491,9 @@ function RegiterTrip() {
                   direction="vertical"
                   items={[
                     {
-                      title: 'Gần điểm đón',
+                      title: 'Đón tôi tại',
                       status: "finish",
-                      icon: <i className="bi bi-geo text-primary"></i>,
+                      icon: <i className="bi bi-geo-fill" style={{color: "#ff4d4f"}}></i>,
                       description: 
                       <Row>
                         <Col span={24}>
@@ -537,9 +518,9 @@ function RegiterTrip() {
                       </Row>
                     },
                     {
-                      title: 'Gần điểm đến',
+                      title: 'Đưa tôi đến',
                       status: 'finish',
-                      icon: <i className="bi bi-geo-alt"></i>,
+                      icon: <i className="bi bi-geo-alt-fill" ></i>,
                       description: 
                       <Row>
                         <Col span={24}>
@@ -570,7 +551,7 @@ function RegiterTrip() {
               </Form>
 
               {/* Detail canvas */}
-              <div class="offcanvas offcanvas-end" tabIndex="-1" id="registerDetailTripOffcanvasRight" aria-labelledby="registerDetailTripRightLabel">
+              <div class="offcanvas offcanvas-bottom" style={{height: "690px"}} tabIndex="-1" id="registerDetailTripOffcanvasRight" aria-labelledby="registerDetailTripRightLabel">
                 <div class="offcanvas-header">
                     <h5 class="offcanvas-title" id="registerDetailTripRightLabel">Điền thông tin cuốc đi</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -582,7 +563,7 @@ function RegiterTrip() {
                     <Row gutter={16}>
 
                       <Col span={16}>
-                        <Form.Item name="customer-name-input" label="Tên khách hàng">
+                        <Form.Item name="customer-name-input" label="Tên người đặt cuốc">
                           <Input placeholder="Nguyễn Văn A..." defaultValue={localStorage.getItem("fullName")}/>
                         </Form.Item>
                       </Col>
@@ -677,7 +658,7 @@ function RegiterTrip() {
 
                     <Row>
                       <Col span={24}>
-                        <Form.Item name="customer-note-input" label="Ghi chú của khách hàng">
+                        <Form.Item name="customer-note-input" label="Ghi chú của bạn">
                           <Input.TextArea rows={3} placeholder="Trống..." showCount maxLength={200} />
                         </Form.Item>
                       </Col>
@@ -689,7 +670,7 @@ function RegiterTrip() {
                           <Button type="primary" htmlType="submit" onClick={submitCreateRideForm}>
                             Tạo cuốc
                           </Button>
-                          <Button htmlType="button">
+                          <Button htmlType="reset">
                             Làm lại
                           </Button>
                         </Space>

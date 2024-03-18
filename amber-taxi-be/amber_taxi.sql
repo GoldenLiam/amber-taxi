@@ -11,9 +11,9 @@ CREATE TABLE `User`(
     `uuid`      VARCHAR(256)    NOT NULL PRIMARY KEY DEFAULT UUID(),
     `fullName`  VARCHAR(64)     NOT NULL,
     `gender`    VARCHAR(6)      ,
-    `address`   VARCHAR(256)    NOT NULL,
+    `address`   VARCHAR(256)    ,
     `phone`     VARCHAR(11)     NOT NULL UNIQUE,
-    `email`     VARCHAR(128)    NOT NULL UNIQUE,
+    `email`     VARCHAR(128)    UNIQUE,
     `password`  VARCHAR(128)    NOT NULL,
     `role`      VARCHAR(24)     NOT NULL,
     `dob`       DATE            NOT NULL,
@@ -34,7 +34,7 @@ INSERT INTO `User` (`uuid`, `fullName`, `gender`, `address`, `phone`, `email`, `
 CREATE TABLE `CallCenterAgent`(
     `uuid`                  VARCHAR(256)    NOT NULL PRIMARY KEY DEFAULT UUID(),
     `userId`                VARCHAR(256)    NOT NULL,
-    `state`                 TINYINT(1)      NOT NULL DEFAULT 0,
+    `state`                 VARCHAR(12)     NOT NULL DEFAULT "OFFLINE",
     FOREIGN KEY (`userId`)  REFERENCES      `User`(`uuid`) ON DELETE CASCADE
 );
 INSERT INTO `CallCenterAgent`(`userId`) VALUES 
@@ -58,6 +58,7 @@ INSERT INTO `Driver`(`userId`, `drivingLicenceNumber`, `expiryDate`) VALUES
 CREATE TABLE `Customer`(
     `uuid`                  VARCHAR(256)    NOT NULL PRIMARY KEY DEFAULT UUID(),
     `userId`                VARCHAR(256)    ,
+    `state`                 VARCHAR(12)     NOT NULL DEFAULT "OFFLINE",
     FOREIGN KEY (`userId`)  REFERENCES      `User`(`uuid`) ON DELETE CASCADE
 );
 INSERT INTO `Customer`(`userId`) VALUES

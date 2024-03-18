@@ -53,6 +53,24 @@ class RidestatusController extends BaseController {
     });
   }
 
+  async getAllWithRide(req, res){
+    let response = await this.service.getAllWithRide();
+
+    //If get error
+    if (response.error){
+      return res.status(response.statusCode).json({
+        "decription": response.message,
+        "data" : "",
+        "dataType" : "JSON",
+      });
+    }
+
+    return res.status(response.statusCode).json({
+      "decription": "Success get data",
+      "data" : response.data,
+      "dataType" : "JSON",
+    });
+  }
 }
 
 export default new RidestatusController(ridestatusService);

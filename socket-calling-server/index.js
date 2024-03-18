@@ -96,13 +96,11 @@ io.on("connection", (socket) => {
 		if (socketUserList.find(item => { if (item.socket_id === socket.id) {return true;} return false;}) === undefined){
 
 			//Thêm user vào mảng
-			socketUserList.push(
-				{
-					socket_id: socket.id,
-					uuid,
-					display_name
-				}
-			)
+			socketUserList.push({
+				socket_id: socket.id,
+				uuid,
+				display_name
+			})
 		}
 		
 	})
@@ -170,7 +168,7 @@ io.on("connection", (socket) => {
 		})
 
 		// Người này offline
-		if( socketUser === undefined){
+		if( socketUser == undefined){
 			// Sự kiện người đó không liên lạc được do offline
 			io.to(socketUser.socket_id).emit("callFail", "This user is not currently online");
 
@@ -208,40 +206,42 @@ io.on("connection", (socket) => {
 		// Người này online
 		else {
 
-			//Tìm xem người này có đang trong phòng gọi với ai khác
-			var isUserInCalling = callingList.find(item => {
-				if (item.uuid == userToCall) {
-					return true;
-				}
-				return false;
-			})
+			io.to(socketUser.socket_id).emit("callUser", { signal: signalData, from, name });
 
-			// Nghĩa là người này đang bận gọi người khác
-			if(isUserInCalling !== undefined){
-				// Sự kiện người đó không liên lạc được do offline
-				io.to(socketUser.socket_id).emit("callFail", "This user is busy now");
+			// //Tìm xem người này có đang trong phòng gọi với ai khác
+			// var isUserInCalling = callingList.find(item => {
+			// 	if (item.uuid == userToCall) {
+			// 		return true;
+			// 	}
+			// 	return false;
+			// })
 
-				callingList.push({
-					person_call: from,
-					person_answer: userToCall,
-					begin_calling_time: Date.now(),
-					end_calling_time: null,
-					calling_status: "busy"
-				})
-			}
-			// Người dùng này có thể nhận cuộc gọi
-			else {
+			// // Nghĩa là người này đang bận gọi người khác
+			// if(isUserInCalling !== undefined){
+			// 	// Sự kiện người đó không liên lạc được do offline
+			// 	io.to(socketUser.socket_id).emit("callFail", "This user is busy now");
 
-				callingList.push({
-					person_call: from,
-					person_answer: userToCall,
-					begin_calling_time: Date.now(),
-					end_calling_time: null,
-					calling_status: "calling"
-				})
+			// 	callingList.push({
+			// 		person_call: from,
+			// 		person_answer: userToCall,
+			// 		begin_calling_time: Date.now(),
+			// 		end_calling_time: null,
+			// 		calling_status: "busy"
+			// 	})
+			// }
+			// // Người dùng này có thể nhận cuộc gọi
+			// else {
 
-				io.to(socketUser.socket_id).emit("callUser", { signal: signalData, from, name });
-			}
+			// 	callingList.push({
+			// 		person_call: from,
+			// 		person_answer: userToCall,
+			// 		begin_calling_time: Date.now(),
+			// 		end_calling_time: null,
+			// 		calling_status: "calling"
+			// 	})
+
+			// 	io.to(socketUser.socket_id).emit("callUser", { signal: signalData, from, name });
+			// }
 		}
 	});
 

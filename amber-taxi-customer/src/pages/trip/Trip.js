@@ -52,11 +52,19 @@ const myLocationIcon = icon({
   iconSize: [24, 24]
 });
 
+
+const driverPointMarkerIcon = icon({
+  iconUrl: require("../../assets/images/driver-marker.png"),
+  iconSize: [36, 36]
+})
+
 function Trip() {
   // Biến lấy từ context socket
   const socketTransportationContext = useContext(SocketTransportationContext);
   const { myself, updateLocation, updateRideList, rideList, 
     acceptRide, acceptRideResult, acceptRideResultReason, 
+
+    socketDriver,
 
     pickRide,
     pickRideResult,
@@ -84,9 +92,11 @@ function Trip() {
   const [map, setMap] = useState(null);
   const [mapRouting, setMapRouting] = useState(null);
 
-  // Biến customer
-  const [customer, setCustomer] = useState(null);
+  // Biến driver
+  const [driver, setDriver] = useState(null);
 
+  // Biến driver rating
+  const [driverRating, setDriverRating] = useState(null);
 
   // Biến messageApi để dùng hiển thị kết quả thực thi
   const [messageApi, contextHolder] = message.useMessage();
@@ -123,7 +133,7 @@ function Trip() {
   let { uuid } = useParams();
 
   // Hàm để lấy ride bằng uuid
-  const getRideInformation = async () => {
+  const getAllRideInformation = async () => {
     // Lấy dữ liệu ride bằng uuid
     let responseRideData = await beAPI.get(`/ride/${uuid}`);
 
@@ -146,15 +156,6 @@ function Trip() {
         setRide(responseRideData.data.data);
       }
 
-      // Lấy dữ liệu user
-      let responseUserData = await beAPI.get(`/user/getUserByPhone/${responseRideData.data.data.phone}`);
-
-      if(responseUserData.status == 200){
-        // set customer
-        if( JSON.stringify(responseUserData.data.data) && JSON.stringify(customer) ){
-          setCustomer(responseUserData.data.data);
-        }
-      }
 
       // Lấy dữ liệu ridestatus
       let responseRidestatusData = await beAPI.get(`/ridestatus/rideId/${uuid}`);
@@ -165,6 +166,26 @@ function Trip() {
           setRideStatus(responseRidestatusData.data.data);
         }
       }
+
+      // Lấy dữ liệu driver
+      let responseDriverData = await beAPI.get(`/user/${responseRidestatusData.data.data.driverId}`);
+      if(responseDriverData.status == 200){
+        if( JSON.stringify(responseDriverData.data.data) && JSON.stringify(driver) ){
+          setDriver(responseDriverData.data.data);
+        }
+      }
+
+      // Lấy dữ liệu driver rating
+      let responseDriverRatingData = await beAPI.get(`/rating/getDriverRatingByDriverId/${responseRidestatusData.data.data.driverId}`);
+      if(responseDriverRatingData.status == 200){
+        if( JSON.stringify(responseDriverRatingData.data.data) && JSON.stringify(driverRating) ){
+          setDriverRating(responseDriverRatingData.data.data);
+        }
+      }
+
+      console.log(responseDriverData)
+      console.log(responseDriverRatingData)
+
     }
 
     console.log("dasdas");
@@ -205,12 +226,16 @@ function Trip() {
 
   useEffect(() => {
     // Kiểm tra xem tài xế này có hợp lệ vào cuốc xe này không
-    if ( ridestatus.driverId != null && ridestatus.driverId != localStorage.getItem("uuid") ){
+    if ( ride.phone != null && ride.phone != localStorage.getItem("phone") ){
       window.location.href = "/";
     }
 
-    if ( addressStartingPoint == null && addressDestinationPoint == null ) {
-      getRideInformation();
+    if ( ride.state == "CANCELED" || ride.state == "DENIED" || ridestatus.state == "DONE" || ridestatus.state == "CREATED" ){
+      window.location.href = "/ride-detail/123";
+    }
+
+    if ( addressStartingPoint == null || addressDestinationPoint == null ) {
+      getAllRideInformation();
     }
 
     if( currentLatitude == 0 && currentLongitude == 0){
@@ -221,7 +246,7 @@ function Trip() {
     if(map){
       
       // Set view
-      map.setView([currentLatitude, currentLongitude], 15);
+      //map.setView([currentLatitude, currentLongitude], 15);
 
       // Nếu đã có routing không cần load nữa
       if(!mapRouting && addressStartingPoint!=null && addressDestinationPoint!=null){
@@ -234,7 +259,7 @@ function Trip() {
 
             let divIconButton = L.DomUtil.create("div", "");
 
-            divIconButton.style.backgroundImage = `url('https://maps.gstatic.com/tactile/mylocation/mylocation-sprite-1x.png')`;
+            divIconButton.style.backgroundImage = `url(${require("../../assets/images/all-mylocation-icon.png")})`;
             divIconButton.style.width = "18px";
             divIconButton.style.height = "18px";
             divIconButton.style.backgroundPositionX = "18px";
@@ -264,7 +289,6 @@ function Trip() {
 
         // add button này vào map
         new buttonCenterCurrentLocationExtend({position: "bottomright"}).addTo(map);
-        
 
         // Routing
         /*
@@ -273,8 +297,8 @@ function Trip() {
         */
         var routingMachine = L.Routing.control({
           waypoints: [
-            L.latLng(addressStartingPoint.split(";")[0], addressStartingPoint.split(";")[1]), // Đại học TĐT
-            L.latLng(addressDestinationPoint.split(";")[0], addressDestinationPoint.split(";")[1]), // Lotte
+            L.latLng(addressStartingPoint.split(";")[0], addressStartingPoint.split(";")[1]),
+            L.latLng(addressDestinationPoint.split(";")[0], addressDestinationPoint.split(";")[1]),
           ],
           lineOptions: {
             styles: [{ color: "#6FA1EC", weight: 4 }]
@@ -308,6 +332,7 @@ function Trip() {
           draggableWaypoints: false,
           fitSelectedRoutes: false,
           showAlternatives: true,
+          containerClassName: 'd-none',
 
           collapsible: true,
           show: false,
@@ -323,6 +348,7 @@ function Trip() {
       getRidestatus();
     }
 
+    
 
     return () => {}
 
@@ -333,7 +359,7 @@ function Trip() {
       {contextHolder}
       <div className="Trip d-flex flex-column" style={{height: '100vh'}}>
 
-        <MenuNavbar />
+        {/* <MenuNavbar /> */}
 
         {/* {<TripMap className="flex-grow: 1"/>} */}
 
@@ -358,15 +384,34 @@ function Trip() {
             </Popup>
           </Marker>
 
+          {socketDriver != null && 
+            <>
+              {
+              socketDriver.current_location != null &&  
+              <Marker 
+                position={[socketDriver.current_location.latitude, socketDriver.current_location.longitude]}
+                icon={
+                  driverPointMarkerIcon
+                }
+              >
+                <Popup>
+                  Vị trí hiện tại<br />  của tài xế ở đây.
+                </Popup>
+              </Marker>
+              }
+            </>
+          }
+
         </MapContainer>
           
         {/* Chat context cho bottom trip card */}
-        
+
+        { driver != null && driverRating != null &&  
         <SocketCallingContextProvider>
           <SocketChatingContextProvider>
 
-            <BottomTripCard data={{
-              ride, customer, uuid, ridestatus,
+            <BottomTripCard props={{
+              ride, driver, uuid, ridestatus, driverRating,
 
               pickRide,
               pickRideResult,
@@ -382,6 +427,7 @@ function Trip() {
           
           </SocketChatingContextProvider>
         </SocketCallingContextProvider>
+        }
 
         
         {/* <MapOverlay /> */}

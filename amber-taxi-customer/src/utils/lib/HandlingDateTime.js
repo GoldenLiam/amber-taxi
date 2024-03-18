@@ -21,8 +21,7 @@ module.exports = {
      */
     convertSecondToHMSTimeFormat(inputSecond){
         try {
-            
-            let hours = Math.floor(inputSecond / 3600);
+            let hours = Math.floor( inputSecond*2 / 3600);
             inputSecond %= 3600;
             let minutes = Math.floor(inputSecond / 60);
             let seconds = inputSecond % 60;

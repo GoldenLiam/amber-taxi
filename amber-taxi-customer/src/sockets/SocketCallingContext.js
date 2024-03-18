@@ -24,8 +24,9 @@ const SocketCallingContextProvider = ( { children } ) => {
 
     //Note biến mới để định danh
     var myself = {
-        uuid: "123456789",
-        display_name: "Tổng đài viên"
+        uuid: localStorage.getItem("uuid"), 
+        uuid_ride: "JQKA2",
+        display_name: localStorage.getItem("fullName")
     };
 
     //Biến thẻ media (cụ thể là video) người dùng
@@ -56,8 +57,8 @@ const SocketCallingContextProvider = ( { children } ) => {
         
         //Định danh trước khi gọi
         socket.emit('registerBeforeCalling', {
-            uuid: myself.uuid, 
-            display_name: myself.display_name
+            uuid: localStorage.getItem("uuid"), 
+            display_name: localStorage.getItem("fullName")
         });
 
         

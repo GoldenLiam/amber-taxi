@@ -55,7 +55,7 @@ const myLocationIcon = icon({
 function Trip() {
   // Biến lấy từ context socket
   const socketTransportationContext = useContext(SocketTransportationContext);
-  const { myself, updateLocation, updateRideList, rideList, 
+  const { myself, updateLocation, driverUpdateLocationToCustomer, updateRideList, rideList, 
     acceptRide, acceptRideResult, acceptRideResultReason, 
 
     pickRide,
@@ -168,6 +168,7 @@ function Trip() {
     }
 
     console.log("dasdas");
+    console.log(ride);
   }
 
   const getRidestatus = async () => {
@@ -197,6 +198,14 @@ function Trip() {
           longitude: position.coords.longitude
         })
 
+        // Them cho driver
+        driverUpdateLocationToCustomer({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        }, "0968472920");
+
+        console.log(ride)
+
       },
       err => console.log(err)
     );
@@ -221,7 +230,7 @@ function Trip() {
     if(map){
       
       // Set view
-      map.setView([currentLatitude, currentLongitude], 15);
+      //map.setView([currentLatitude, currentLongitude], 15);
 
       // Nếu đã có routing không cần load nữa
       if(!mapRouting && addressStartingPoint!=null && addressDestinationPoint!=null){
@@ -365,7 +374,7 @@ function Trip() {
         <SocketCallingContextProvider>
           <SocketChatingContextProvider>
 
-            <BottomTripCard data={{
+            <BottomTripCard props={{
               ride, customer, uuid, ridestatus,
 
               pickRide,

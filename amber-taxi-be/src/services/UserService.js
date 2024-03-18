@@ -23,7 +23,7 @@ class UserService extends BaseService {
             };
 
         } catch (error) {
-
+            console.log(error)
             return {
                 error: true,
                 statusCode: 500,
@@ -31,6 +31,30 @@ class UserService extends BaseService {
                 errors: error.errors
             };
 
+        }
+    }
+
+    async register(data) {
+        try {
+            
+            let item = await this.model.create({
+                data
+            });
+
+            return{
+                error: false,
+                statusCode: 201, //code 201 created
+                data: item
+            };
+
+        } catch (error) {
+            console.log(error)
+            return {
+                error: true,
+                statusCode: 500,
+                message: error.errmsg || "Not able to register new user",
+                errors: error.errors
+            };
         }
     }
 
@@ -69,7 +93,7 @@ class UserService extends BaseService {
             return {
                 error: true,
                 statusCode: 500,
-                message: error.errmsg || "Not able to login",
+                message: error.errmsg || "Not able to get item by phone",
                 errors: error.errors
             };
 

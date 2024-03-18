@@ -97,6 +97,46 @@ class RidestatusService extends BaseService {
 
         }
     }
+
+
+    async getAllWithRide(){
+        try {
+
+            let item = await this.model.findMany({
+                include:{
+                    ride: {
+                        select:{
+                            fullName: true,
+                            phone: true,
+                            rideStartTime: true,
+                            rideEndTime: true,
+                            startingPoint: true,
+                            destinationPoint: true
+                        }
+                    }
+                },
+                orderBy: {
+                    stateTime: 'desc',
+                },
+            });
+
+            return{
+                error: false,
+                statusCode: 200, //code 200 get success
+                data: item
+            };
+
+        } catch (error) {
+            console.log(error)
+            return {
+                error: true,
+                statusCode: 500,
+                message: error.errmsg || "Not able to get all item",
+                errors: error.errors
+            };
+
+        }
+    }
     
 }
 

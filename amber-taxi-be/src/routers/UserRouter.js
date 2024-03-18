@@ -22,6 +22,10 @@ Router.post('/', async (req, res) => {
     await UserController.insert(req, res);
 });
 
+Router.post('/register', async (req, res) => {
+    await UserController.userRegister(req, res);
+});
+
 Router.post('/login', async (req, res) => {
     await UserController.userLogin(req, res);
 });

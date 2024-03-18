@@ -58,9 +58,45 @@ function Home() {
                         
                         <div className="lh-1 mx-1">
                             <h1 className="h5 mb-0 text-white lh-1">{localStorage.getItem("fullName")}</h1>
-                            <small style={{fontSize: 10}}>Doanh thu ngày hôm nay: <b>190.000đ</b></small>
                         </div>
                     </div>
+
+                                        
+                    <div className="btn-action-container">
+                        <button type="button" class="btn btn--yellow">
+                            <span class="btn__txt">ĐẶT XE</span>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                        </button>
+
+                        <button type="button" class="btn btn--purple">
+                            <span class="btn__txt">ĐẶT ĐỒ ĂN</span>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                        </button>
+
+                        <button type="button" class="btn btn--green">
+                            <span class="btn__txt">LỊCH SỬ</span>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                        </button>
+                        
+                        <button type="button" class="btn btn--blue">
+                            <span class="btn__txt">GÓP Ý</span>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                            <i class="btn__bg" aria-hidden="true"></i>
+                        </button>
+
+                    </div>
+
 
                     <div className="row">
 

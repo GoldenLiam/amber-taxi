@@ -10,7 +10,7 @@ import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import { MapContainer, TileLayer, useMap, Marker, FeatureGroup, Popup } from 'react-leaflet'
 
 // React components
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
@@ -57,6 +57,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 // Be API
 import { beAPI } from 'api';
 
+
+import { SocketTransportationContext } from 'sockets/SocketTransportationContext';
+
+
 /*
 Điều phối viên taxi là người có nhiệm vụ nhận và xử lý các cuộc gọi của khách hàng 
 đặt xe taxi, phân bổ và phân công các tài xế cho các đơn hàng, theo dõi và giám sát 
@@ -86,6 +90,9 @@ const startingPointMarkerIcon = icon({
 });
 
 function CreateRide() {
+  //
+  const socketTransportationContext = useContext(SocketTransportationContext);
+  const { bookRide } = socketTransportationContext;
 
   // Map variable
   const [map, setMap] = useState(null);
@@ -94,6 +101,9 @@ function CreateRide() {
   // Biến latitude và longitude mặc định
   const [latitude, setLatitude] = useState(11.142451414209289); //latitude of Saigon River
   const [longitude, setLongitude] = useState(106.50830205050272); //longitude of Saigon River
+
+
+ 
 
   // Biến cho điểm đón
   const [addressStartingPointData, setAddressStartingPointData] = useState([]);
@@ -203,24 +213,7 @@ function CreateRide() {
 
   // Hàm submit
   const submitCreateRideForm = async () => {
-    //console.log(createRideForm.getFieldsValue())
     // Có một bug form của select gender, input seat khi chưa chọn sẽ bị mặc định là null mặc dù đã có defaultValue
-    /*
-    {
-      "customer-name-input": "Thắng",
-      "customer-phone-input": "Lưu",
-      "ride-start-datetime": "2024-03-08T14:52:29.300Z",
-      "ride-number-seat": 2,
-      "customer-gender": "male",
-      "ride-address-starting-point-input": "10.7375481;106.7302238;Quận 7, Thành phố Hồ Chí Minh, Việt Nam",
-      "ride-address-destination-point-input": "10.7217236;106.6296151;Quận 8, Thành phố Hồ Chí Minh, Việt Nam",
-      "ride-distance-input": "14.89",
-      "ride-price-input": "241.981 ₫",
-      "ride-time-input": "0:18:50",
-      "customer-note-input": "Hahah"
-    }
-    */
-
     let ride = {
       fullName: createRideForm.getFieldValue("customer-name-input"),
       gender: createRideForm.getFieldValue("customer-gender") == null ? "male" : createRideForm.getFieldValue("customer-gender"),
@@ -235,17 +228,6 @@ function CreateRide() {
       note: createRideForm.getFieldValue("customer-note-input")
     }
 
-
-  //   CREATE TABLE `RideStatus`(
-  //     `uuid`                          VARCHAR(256)    NOT NULL PRIMARY KEY DEFAULT UUID(),
-  //     `driverId`                      VARCHAR(256)    ,
-  //     `driverShiftId`                 VARCHAR(256)    ,
-  //     `state`                         VARCHAR(12)     NOT NULL DEFAULT 'CREATED',
-  //     `stateTime`                     DATETIME        NOT NULL,
-  //     `stateDetail`                   VARCHAR(256)    ,
-  //     FOREIGN KEY (`driverId`)        REFERENCES      `User`(`uuid`) ON DELETE CASCADE,
-  //     FOREIGN KEY (`driverShiftId`)   REFERENCES      `DriverShift`(`uuid`) ON DELETE CASCADE
-  // );
 
     // Gọi API để tạo cuốc
     let responseCreateRideData = await beAPI.post('/ride', ride);
@@ -274,6 +256,8 @@ function CreateRide() {
       });
       return;
     }
+
+    bookRide( responseCreateRideData.data.data.uuid );
 
     // Tất cả API đều thực thi thành công
     messageApi.open({

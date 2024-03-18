@@ -8,9 +8,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
 import { React, useEffect, useState } from "react";
 import { MenuNavbar } from "../../components";
-import { Avatar, Card as CardAntd, Button, Skeleton, Switch, Rate, Divider, Space, Tag, message } from 'antd';
-import { Typography } from 'antd';
-import { Checkbox, Form, Input } from 'antd';
+import { Avatar, Card as CardAntd, Button, Skeleton, Switch, Rate, Divider, Space, Tag, message,
+    Typography, Checkbox, Form, Input, Select } from 'antd';
 
 import { SearchOutlined } from '@ant-design/icons';
 
@@ -18,15 +17,17 @@ import Chart from '../../components/Chart/Chart';
 import './login.style.css';
 // Be API
 import { beAPI } from '../../api';
+import { handlingDateTime } from "../../utils";
 
 function Login() {
-    const [loginForm] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
 
-    const sumbitLoginForm = async () => {
+    const sumbitLoginForm = async (e)  => {
+        e.preventDefault();
+
         let userLogin = {
-            phone: loginForm.getFieldValue("phone-input"),
-            password: loginForm.getFieldValue("password-input"),
+            phone: e.target.elements["phone-input"].value,
+            password: e.target.elements["password-input"].value,
             role: "Customer"
         }
 
@@ -67,72 +68,39 @@ function Login() {
     return (
         <> 
             {contextHolder}
-            <div className="login-section">
-
-                <div className="container">
-
-                    <div className="login">
-                        <Typography.Title level={3}>ĐĂNG NHẬP</Typography.Title>
-                        <Typography.Text type="secondary">Welcome to Amber Taxi !!!</Typography.Text>
-
-                        <br/>
-                        <br/>
-
-                        <Form 
-                            form={loginForm}
-                            layout="horizontal"
-                            labelAlign="left"
-                            labelWrap
-                            labelCol={{
-                                flex: '110px',
-                            }}
-                            wrapperCol={{
-                            flex: 1,
-                            }}
-                        >
-                            <Form.Item
-                                label="Số điện thoại"
-                                name="phone-input"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: 'Nhập số điện vui lòng nhập số điện thoại!',
-                                    },
-                                ]}
-                            >
-                                <Input />
-                            </Form.Item>
-
-                            <Form.Item
-                                label="Mật khẩu"
-                                name="password-input"
-                                rules={[
-                                    {
-                                    required: true,
-                                    message: 'Vui lòng nhập mật khẩu!',
-                                    },
-                                ]}
-                            >
-                                <Input.Password />
-                            </Form.Item>
-
-                            <Form.Item>   
-                                <Space size={"middle"}>
-
-                                    <Button type="primary" onClick={() => sumbitLoginForm()}>
-                                        Đăng nhập
-                                    </Button>
-
-                                    <div>Chưa có tài khoản? <Typography.Link> Đăng ký ngay</Typography.Link></div>
-
-                                </Space>
-                            </Form.Item>
-
-                        </Form>
-                    </div>
+            
+            <div className="register-section">
+                <div className="pagewrap" style={{background: `url(${require("../../assets/images/taxi_auth_bg.jpg")})`, backgroundSize: "cover"}}>
                     
+                    <div className="pagewrap-overlay"></div>
+                    
+                    <div className="content">
+                        <header>
+                            <div className="header-content">
+                                <h1>
+                                    <span className="taxi">Amber</span>Taxi<br/>
+                                    <p style={{fontSize: "24px"}}>Welcome</p>
+                                </h1>
+                            </div>
+                        </header>
+                        
+                        <section style={{backgroundImage: `url(${require("../../assets/images/taxi_auth_bg.jpg")})`,backgroundSize: "cover", height: "350px"}}>
+                            <form id="login-form" onSubmit={sumbitLoginForm}>
+                                <div className="phone-input">
+                                    <input type="tel" name="phone-input" placeholder="Số điện thoại" required/>
+                                </div>
 
+                                <div className="password-input">
+                                    <input type="password" name="password-input" placeholder="Mật khẩu" required/>
+                                </div>
 
+                                <p className="text-center text-light mt-3">Chưa có tài khoản? <a href="/register">Đăng ký</a> ngay</p>
+                            </form>
+                           
+                        </section>
+
+                        <button form="login-form" type="submit">Đăng nhập</button>
+                    </div>
                 </div>
             </div>
         </>

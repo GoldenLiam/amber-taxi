@@ -50,7 +50,7 @@ module.exports = {
 
     calculateDistanceOneToMany(inputDate){
         try {
-
+            
             
 
         } catch (error) {

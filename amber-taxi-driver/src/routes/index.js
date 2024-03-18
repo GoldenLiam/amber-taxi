@@ -3,6 +3,7 @@ import { BookingList, Home, Trip, Login, RideDetail } from "../pages";
 
 // Socket
 import { SocketTransportationContextProvider } from "../sockets";
+import { SocketTransportationContextProviderForBookingList } from "../sockets";
 
 export const AppRoutes = () => {
     return (
@@ -12,7 +13,7 @@ export const AppRoutes = () => {
                 <Route path="/" element={<Home />}>
                 </Route>
                 
-                <Route path="/booking-list" element={ <SocketTransportationContextProvider> <BookingList /> </SocketTransportationContextProvider> }>
+                <Route path="/booking-list" element={ <SocketTransportationContextProviderForBookingList> <BookingList /> </SocketTransportationContextProviderForBookingList> }>
                 </Route>
 
                 <Route path="/trip/:uuid" element={ <SocketTransportationContextProvider> <Trip /> </SocketTransportationContextProvider>}>

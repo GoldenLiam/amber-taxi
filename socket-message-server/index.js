@@ -4,6 +4,10 @@ const server = require("http").createServer(app);
 const cors = require("cors");
 const short = require('short-uuid');
 
+import ridestatusModel from "./models/Ridestatus";
+import messageModel from "./models/Message";
+
+
 /**** APP WEB ****/
 app.use(cors());
 
@@ -68,7 +72,7 @@ io.on("connection", (socket) => {
 
     // Socket bắt sự kiện người dùng bắt đầu online nhận cuộc gọi và yêu cầu định danh với người dùng
 	// Nếu không định danh thì sẽ không được vào
-	socket.on('registerBeforeChating', ({uuid, uuid_ride, display_name}) => {
+	socket.on('registerBeforeChating', ({uuid, uuid_ride, role, phone, display_name}) => {
 
 		//Check nếu user chưa có trong danh sách 
 		if (socketUserList.find(item => { if (item.socket_id === socket.id) {return true;} return false;}) === undefined){
@@ -78,6 +82,8 @@ io.on("connection", (socket) => {
 				socket_id: socket.id,
 				uuid,
 				uuid_ride,
+				role,
+				phone,
 				display_name
 			})
 		}
@@ -101,37 +107,58 @@ io.on("connection", (socket) => {
 		socketUserList = socketUserList.filter(item => item.socket_id !== socket.id);
     })
 
-	
 
-    socket.on('sendMessage', ( {userToChat, message, fromUser, uuidRide} ) => {
-		
-        //Tìm người dùng dựa trên uuid và id cuốc
-		var socketUser = socketUserList.find(item => {
-			if (item.uuid == userToChat && item.uuid_ride == uuidRide) {
+	socket.on('sendMessageInRide', async ( {user_to_chat, message, from_user, uuid_ride} ) => {
+		// Lấy ra socketuser người nhận tin nhắn trong socket
+		let socketUserReceiver = socketUserList.find(item => { 
+			if (item.uuid == user_to_chat) {
 				return true;
 			}
 			return false;
 		})
 
-        // Người này offline hoặc đang ở trong ride không phù hợp
-		if( socketUser === undefined){
-            console.log("user offline")
+		// Lấy ridestatus từ DB
+		let ridestatusInDB = await ridestatusModel.findFirst({
+			where: {
+				rideId: uuid_ride
+			},
+			orderBy: {
+				stateTime: 'desc',
+			}
+		});
 
-            //Code database save this new message
-            
-        }
+		if( ridestatusInDB.driverId == user_to_chat || ridestatusInDB.driverId == from_user ){
+			let insertMessageResult = await messageModel.create({
+				data: {
+					rideId: uuid_ride,
+					senderId: from_user,
+					receiverId: user_to_chat,
+					message: message
+				}
+			});
 
-        // Người này đang online
-        else{
-			console.log("sent message");
-            // Người này sẵn sàng nhận tin nhắn
-			io.to(socketUser.socket_id).emit("receiveMessage", { message, fromUser });
-			
-			//Code database save this new message
+			if (socketUserReceiver != undefined){
+				io.to(socketUserReceiver.socket_id).emit("receiveMessageInRide", { message: insertMessageResult, from_user });
+			}
+		}
+	})
+	
 
-        }
+    // socket.on('sendMessage', ( {userToChat, message, fromUser} ) => {
+    //     //Tìm người dùng dựa trên uuid và id cuốc
+	// 	var socketUser = socketUserList.find(item => {
+	// 		if (item.uuid == userToChat) {
+	// 			return true;
+	// 		}
+	// 		return false;
+	// 	})
 
-    })
+	// 	if(socketUser == null){
+
+	// 	} 
+
+	// 	io.to(socketUser.socket_id).emit("receiveMessage", { message, fromUser });
+    // })
 
 
 })

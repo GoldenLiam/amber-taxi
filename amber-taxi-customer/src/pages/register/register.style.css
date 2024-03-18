@@ -1,121 +1,183 @@
-.register-section {
-    background-image: url("../../assets/images/taxi_login_bg.png");
-    background-repeat: no-repeat;
-    background-size: cover;
-    font-family: "Asap", sans-serif;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-  }
-  
-  .register-section .register {
-    overflow: hidden;
-    background-color: white;
-    padding: 40px 30px 30px 30px;
-    border-radius: 10px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 600px;
-    transform: translate(-50%, -50%);
-    transition: transform 300ms, box-shadow 300ms;
-    box-shadow: 5px 10px 10px rgba(2, 128, 144, 0.2);
-  }
-  
-  .register-section .register::before, .register::after {
-    content: "";
-    position: absolute;
-    width: 600px;
-    height: 600px;
-    border-top-left-radius: 40%;
-    border-top-right-radius: 45%;
-    border-bottom-left-radius: 35%;
-    border-bottom-right-radius: 40%;
-    z-index: -1;
-  }
-  
-  .register-section .register::before {
-    left: 40%;
-    bottom: -130%;
-    background-color: rgba(69, 105, 144, 0.15);
-    -webkit-animation: wawes 6s infinite linear;
-    -moz-animation: wawes 6s infinite linear;
-    animation: wawes 6s infinite linear;
-  }
-  
-  .register-section .register::after {
-    left: 35%;
-    bottom: -125%;
-    background-color: rgba(2, 128, 144, 0.2);
-    -webkit-animation: wawes 7s infinite;
-    -moz-animation: wawes 7s infinite;
-    animation: wawes 7s infinite;
-  }
-  
-  .register-section .register > input {
-    font-family: "Asap", sans-serif;
-    display: block;
-    border-radius: 5px;
-    font-size: 16px;
-    background: white;
-    width: 100%;
-    border: 0;
-    padding: 10px 10px;
-    margin: 15px -10px;
-  }
-  
-  .register-section .register > button {
-    font-family: "Asap", sans-serif;
-    cursor: pointer;
-    color: #fff;
-    font-size: 16px;
-    text-transform: uppercase;
-    width: 80px;
-    border: 0;
-    padding: 10px 0;
-    margin-top: 10px;
-    margin-left: -5px;
-    border-radius: 5px;
-    background-color: #f45b69;
-    -webkit-transition: background-color 300ms;
-    -moz-transition: background-color 300ms;
-    transition: background-color 300ms;
-  }
-  
-  .register-section .register > button:hover {
-    background-color: #f24353;
-  }
-  
-  
-  @-webkit-keyframes wawes {
-    from {
-      -webkit-transform: rotate(0);
-    }
-    to {
-      -webkit-transform: rotate(360deg);
-    }
-  }
-  @-moz-keyframes wawes {
-    from {
-      -moz-transform: rotate(0);
-    }
-    to {
-      -moz-transform: rotate(360deg);
-    }
-  }
-  @keyframes wawes {
-    from {
-      -webkit-transform: rotate(0);
-      -moz-transform: rotate(0);
-      -ms-transform: rotate(0);
-      -o-transform: rotate(0);
-      transform: rotate(0);
-    }
-    to {
-      -webkit-transform: rotate(360deg);
-      -moz-transform: rotate(360deg);
-      -ms-transform: rotate(360deg);
-      -o-transform: rotate(360deg);
-      transform: rotate(360deg);
-    }
-  }
+.register-section .pagewrap {
+  max-width: 100%;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+.register-section .pagewrap-overlay {
+  background-color: #c92;
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.8;
+}
+
+.register-section .content {
+  width: 600px;
+  margin: 0 auto;
+  padding: 10vh 0;
+}
+
+.register-section header {
+  background-color: #fff;
+  width: 100%;
+  height: 150px;
+  text-align: center;
+  position: relative;
+}
+
+.register-section header:after {
+  content: "";
+  position: absolute;
+  bottom: -11px;
+  left: 0;
+  width: 100%;
+  height: 30px;
+  background-color: #fff;
+  z-index: 1;
+  transform: skewY(2deg);
+}
+
+.register-section header h1 {
+  text-transform: uppercase;
+  font-weight: 300;
+  letter-spacing: 2px;
+}
+
+.register-section .header-content {
+  position: absolute;
+  top: 20%;
+  left: 32%;
+  /* transfrom: translate(-50%, -50%); */
+}
+/* 
+.register-section header h1:before {
+  content: "\f053";
+  font-family: FontAwesome;
+  font-size: 0.8em;
+  position: absolute;
+  left: -200px;
+  top: 10px;
+  color: #ddd;
+  cursor: pointer;
+} */
+/* 
+.register-section .register-section header h1:after {
+  content: "\f0c9";
+  font-family: FontAwesome;
+  font-size: 0.8em;
+  position: absolute;
+  left: 290px;
+  top: 10px;
+  color: #ddd;
+  cursor: pointer;
+} */
+
+.register-section .taxi {
+  font-weight: 600;
+}
+
+.register-section section {
+  position: relative;
+  height: 500px;
+}
+
+.register-section form {
+  margin: 0 auto;
+  max-width: 100%;
+  background-color: #222;
+  height: 100%;
+  opacity: 0.8;
+  padding: 60px 0;
+  box-shadow: 0 19px 38px rgba(0, 0, 0, 0.3), 0 15px 12px rgba(0, 0, 0, 0.22);
+}
+
+.register-section input,
+select {
+  display: block;
+  width: 70%;
+  height: 60px;
+  background: transparent;
+  border: 1px solid #555;
+  border-radius: 5px;
+  margin: 0 auto;
+  font-size: 18px;
+  color: #fff;
+  letter-spacing: 2px;
+  padding-left: 20px;
+  margin-top: 20px;
+}
+
+.register-section input:focus {
+  outline: none;
+}
+
+.register-section ::-webkit-input-placeholder {
+  color: #fff;
+}
+/* 
+.register-section .username-input:after {
+  content: "\f00c";
+  font-family: FontAwesome;
+  position: absolute;
+  top: 35%;
+  right: 18%;
+  color: #fff;
+  font-size: 1.5em;
+}
+
+.register-section .id-input:after {
+  content: "\f067";
+  font-family: FontAwesome;
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: #fff;
+  font-size: 1.5em;
+  top: 68%;
+  left: 78%;
+  cursor: pointer;
+} */
+
+.register-section select {
+  -moz-appearance: none;
+  -webkit-appearance: none;
+}
+
+.register-section select::-ms-expand {
+  display: none;
+}
+/* 
+.register-section .select-input:after {
+  content: "\f078";
+  font-family: FontAwesome;
+  position: absolute;
+  top: 51%;
+  right: 110px;
+  color: #fff;
+  font-size: 1.5em;
+  cursor: pointer;
+} */
+
+.register-section button {
+  background: linear-gradient(to right, #fa1, #fc1);
+  width: 30%;
+  height: 65px;
+  border: none;
+  border-radius: 5px;
+  margin: 0 auto;
+  font-size: 15px;
+  color: #fff;
+  letter-spacing: 3px;
+  display: block;
+  text-transform: uppercase;
+  font-weight: 900;
+  position: relative;
+  top: -30px;
+  box-shadow: 0 19px 38px rgba(0, 0, 0, 0.3), 0 15px 12px rgba(0, 0, 0, 0.22);
+  cursor: pointer;
+}

@@ -86,7 +86,6 @@ const SocketTransportationContextProvider = ( childrenComponent ) => {
         //Mở kết nối socket
         socket.connect();
 
-
         //Định danh trước khi tham gia
         socket.emit('registerBeforeHandlingRide', {
             uuid: myself.uuid, 
@@ -97,8 +96,6 @@ const SocketTransportationContextProvider = ( childrenComponent ) => {
             current_location: myself.current_location,
             phone: localStorage.getItem("phone")
         });
-
-        socket.emit('bookRide', uuid);
 
         socket.on("driverSendLocation", ( socketUser ) => {
             // driverNearbyList.push(
@@ -169,45 +166,10 @@ const SocketTransportationContextProvider = ( childrenComponent ) => {
         socket.emit("sendRideNearbyDriver", { uuid_ride, uuid_driver_list });
     }
 
-    //Hàm thêm ride vào socket
-    // const bookRide = () => {        
-    //     if( ride && ridestatus ){
-    //         // Gửi ride cho socket
-    //         console.log("here")
-    //         socket.emit('bookRide', {
-    //             uuid,
-    //             ride_star_time: ride.rideStartTime,
-    //             ride_end_time: null,
-    //             starting_point: ride.startingPoint,
-    //             destination_point: ride.destinationPoint,
-    //             distance: ride.distance,
-    //             price: ride.price,
-    //             note: ride.note,
-    //             driver_id: ridestatus.driverId,
-    //             driver_shift_id: ridestatus.driverShiftId,
-    //             state: ridestatus.state,
-    //             state_time: ridestatus.stateTime,
-    //             state_detail: ridestatus.stateDetail
-    //             /*
-    //             uuid: "ride_1234524",
-    //             ride_star_time: Date.now(),
-    //             ride_end_time: null,
-    //             starting_point: "10.730060049999999;106.69977554999998;632 Lê Văn Lương",
-    //             destination_point: "10.741029216315445;106.70174422162565;Lotte",
-    //             distance: 0,
-    //             price: 10000,
-    //             note: null,
-    //             driver_id: null,
-    //             driver_shift_id: null,
-    //             state: "CREATED",
-    //             state_time: Date.now(),
-    //             state_detail: ""
-    //             */
-    //         })
-    //     }
-    // };
+    const bookRide = (uuid_ride) => {
+        socket.emit('bookRide', uuid_ride);
+    }
 
-    
     return(
         <SocketTransportationContext.Provider value={{
             myself,
@@ -218,7 +180,8 @@ const SocketTransportationContextProvider = ( childrenComponent ) => {
             ridestatusList,
             driverRide,
             ratingRide,
-            sendRideToNearbyDriver
+            sendRideToNearbyDriver,
+            bookRide
         }}>
             { childrenComponent.children }
         </SocketTransportationContext.Provider>

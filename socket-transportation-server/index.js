@@ -113,6 +113,7 @@ var rideList = [
 	// }
 ];
 
+// Hàm load toàn ride list
 async function loadRide() {
 
 	let rideInDB = await rideModel.findMany();
@@ -195,34 +196,29 @@ io.on("connection", (socket) => {
 	
 	
 	socket.on('findNearbyDriver', async ( uuid_ride ) => {
-		//Tìm cuốc xe dựa trên uuid_ride
+		// Tìm cuốc xe dựa trên uuid_ride
 		var ride = rideList.find(item => { 
 			if (item.uuid == uuid_ride) {
 				return true;
 			}
 			return false;
 		})
-		
-		console.log(ride)
 
-		//
+		// Chỉ lấy những Driver đã có location
 		var socketDriverUserList = socketUserList.filter(item => item.role == "Driver" && item.current_location != null);
 
-		console.log(socketDriverUserList)
-		// if (socketDriverUserList == null){
-		// 	return false;
-		// }
-
+		// Tạo mảng chứa tọa độ điểm đến của cuốc xe
 		var destinationLocation = [ parseFloat(ride.starting_point.split(";")[0]), parseFloat(ride.starting_point.split(";")[1]) ];
+		// Tính khoảng cách tất cả những Driver so với tọa độ điểm đến của cuốc xe
 		var socketDriverDistanceList =  calculateDistance.calculateDistanceDestinationToDriver(socketDriverUserList, destinationLocation);
 		
-
+		// Gửi mãng khoảng cách đến cho call agent
 		socketUserList.forEach( item => {
 			if(item.role == "CallAgent") io.to(item.socket_id).emit("getNearbyDriver", socketDriverDistanceList);
 		});
 	})
 
-	
+	// Điều phối cuốc đi cho driver
 	socket.on('sendRideNearbyDriver', ({ uuid_ride, uuid_driver_list }) => {
 		let ride = rideList.find( item => { 
 			if (item.uuid == uuid_ride) {
@@ -237,7 +233,7 @@ io.on("connection", (socket) => {
 		});
 	})
 
-
+	// Hàm liên tục update location của driver gửi cho customer
 	socket.on('updateLocation', async ({ current_location }) => {
 
 		// Update trạng thái và lấy ra trạng thái
@@ -257,13 +253,37 @@ io.on("connection", (socket) => {
 			if(item.role == "CallAgent") io.to(item.socket_id).emit("driverSendLocation", socketDriverUser);
 		});
 
-		// Gửi location cho Khách hàng trong cuốc
-		
+		// Gửi location cho khách hàng trong cuốc
+	})
+
+
+	socket.on('driverUpdateLocationToCustomer', async ({ current_location, phone }) => {
+		// Update trạng thái và lấy ra trạng thái
+		var socketDriverUser = null;
+		var socketCustomerUser = null;
+		socketUserList = socketUserList.map(item => {
+			if( item.socket_id == socket.id ){
+				// Đặt giá trị mới cho element
+				item.current_location = current_location;
+				// Lấy ra element này
+				socketDriverUser = item;
+			}
+
+			if ( item.phone == phone ){
+				socketCustomerUser = item;
+			}
+
+			return item;
+		});
+
+
+		if (socketCustomerUser != null){
+			io.to(socketCustomerUser.socket_id).emit("getDriverUpdateLocationToCustomer", socketDriverUser);
+		}
 	})
 
 	// Sự kiện dành cho người dùng đặt cuốc
 	socket.on('bookRide', async ( uuid_ride ) => {
-		
 		// Tìm ride trong rideList
 		let rideInList = rideList.find(item => { 
 			if (item.uuid == uuid_ride) {
@@ -284,7 +304,7 @@ io.on("connection", (socket) => {
 			}
 		});
 
-		// Lấy ride status từ DB
+		// Lấy ridestatus từ DB
 		let ridestatusInDB = await ridestatusModel.findFirst({
 			where: {
 				rideId: uuid_ride
@@ -294,7 +314,9 @@ io.on("connection", (socket) => {
 			}
 		});
 
-		// Nếu trạng thái là DONE cũng không thêm vào
+		if (!ridestatusInDB) return;
+
+		// Nếu trạng thái là DONE hoặc CANCELED cũng không thêm vào
 		if ( ridestatusInDB.state == "DONE" || ridestatusInDB.state == "CANCELED" ){
 			return;
 		}
@@ -362,6 +384,8 @@ io.on("connection", (socket) => {
 		io.to(socket.id).emit("sendRideList", newRideList);
 	})
 
+
+	// CallAgent Driver Customer đều có quyền đặt trạng thái này
 	socket.on('acceptRide', async (uuid_ride) => {
 		let ride = rideList.find(item => {
 			if ( item.uuid == uuid_ride && (item.state == "CREATED" || item.state == "DENIED") ) {
@@ -427,7 +451,7 @@ io.on("connection", (socket) => {
 				return item;
 			});
 
-			console.log(rideList);
+			
 
 			// Gửi cho Call Agent
 			socketUserList.forEach( item => {
@@ -444,6 +468,14 @@ io.on("connection", (socket) => {
 
 			// Gửi cho Driver
 			io.to(socket.id).emit("acceptSuccess", uuid_ride);
+
+			// Cập nhật trạng thái driver
+			// await this.model.update({
+            //     where: {
+            //         uuid: driverInList.uuid
+            //     },
+            //     data
+            // });
 			
 
 			return;
@@ -457,6 +489,7 @@ io.on("connection", (socket) => {
 
 	})
 
+	// Chỉ có driver mới có quyền đặt trạng thái này
 	socket.on("pickRide", async (uuid_ride) => {
 		let ride = rideList.find(item => {
 			if ( item.uuid == uuid_ride && item.state == "ACCEPTED" ) {
@@ -519,15 +552,18 @@ io.on("connection", (socket) => {
 
 		// Gửi cho Call Agent
 		socketUserList.forEach( item => {
-			if(item.role == "CallAgent") io.to(item.socket_id).emit("pickSuccess", uuid_ride);
+			if((item.role == "CallAgent") || (item.role == "Customer" && item.phone == ride.phone)) io.to(item.socket_id).emit("pickSuccess", uuid_ride);
 		});
 
 		// Gửi cho Driver
 		io.to(socket.id).emit("pickSuccess", uuid_ride);
+
+
+
 		return;
 	})
 
-
+	// Chỉ có driver mới có quyền đặt trạng thái này
 	socket.on('completeRide', async (uuid_ride) => {
 		let ride = rideList.find(item => {
 			if ( item.uuid == uuid_ride && item.state == "PICKED" ) {
@@ -588,18 +624,20 @@ io.on("connection", (socket) => {
 			return item;
 		});
 
-		// Gửi cho Call Agent
+		// Gửi cho Call Agent và Customer
 		socketUserList.forEach( item => {
-			if(item.role == "CallAgent") io.to(item.socket_id).emit("completeSuccess", uuid_ride);
+			if( (item.role == "CallAgent") || (item.role == "Customer" && item.phone == ride.phone) ) io.to(item.socket_id).emit("completeSuccess", uuid_ride);
 		});
 
 		// Gửi cho Driver
 		io.to(socket.id).emit("completeSuccess", uuid_ride);
+
 		return;
 	})
 
 
-	socket.on('denyRide', async (uuid_ride) => {
+	// Chỉ có driver mới có quyền đặt trạng thái này
+	socket.on('denyRide', async (uuid_ride, reason_deny) => {
 		let ride = rideList.find(item => {
 			if ( item.uuid == uuid_ride && item.state == "ACCEPTED" ) {
 				return true;
@@ -609,7 +647,7 @@ io.on("connection", (socket) => {
 
 
 		if(!ride){
-			io.to(socket.id).emit("acceptFail", "Bạn không thể từ hủy cuốc xe khi ở trạng thái này");
+			io.to(socket.id).emit("denyFail", "Bạn không thể từ hủy cuốc xe khi ở trạng thái này");
 			return;
 		}
 
@@ -639,7 +677,8 @@ io.on("connection", (socket) => {
 			rideId: uuid_ride,
 			driverId: driverInList.uuid,
 			driverShiftId: driverShift.uuid,
-			state: "DENIED"
+			state: "DENIED",
+			stateDetail: reason_deny
 		}
 
 		// Thêm trạng thái vào db
@@ -661,15 +700,17 @@ io.on("connection", (socket) => {
 
 		// Gửi cho Call Agent
 		socketUserList.forEach( item => {
-			if(item.role == "CallAgent") io.to(item.socket_id).emit("denySuccess", uuid_ride);
+			if( (item.role == "CallAgent") || (item.role == "Customer" && item.phone == ride.phone) ) io.to(item.socket_id).emit("denySuccess", uuid_ride);
 		});
 
 		// Gửi cho Driver
 		io.to(socket.id).emit("denySuccess", uuid_ride);
+
 		return;
 	})
 
 
+	// Chỉ có customer mới có quyền đặt trạng thái này
 	socket.on('cancelRide', async (uuid_ride) => {
 		let ride = rideList.find(item => {
 			if ( item.uuid == uuid_ride && item.state == "CREATED" ) {
@@ -680,36 +721,16 @@ io.on("connection", (socket) => {
 
 
 		if(!ride){
-			io.to(socket.id).emit("cancelFail", "Bạn không thể từ hủy cuốc xe");
+			io.to(socket.id).emit("cancelFail", "Bạn không thể hủy cuốc xe khi ở trạng thái này");
 			return;
 		}
-
-
-		// Lấy ra uuid tài xế
-		let driverInList = socketUserList.find(item => { 
-			if (item.socket_id == socket.id) {
-				return true;
-			}
-			return false;
-		})
-
-		
-		// Kiểm tra ca làm của tài xế này
-		let driverShift = await drivershiftModel.findFirst({
-			where: {
-				driverId: driverInList.uuid
-			},
-			orderBy: {
-				shiftEndTime: 'desc',
-			}
-		});
 
 
 		// Tạo trạng thái mới
 		let newRideState = {
 			rideId: uuid_ride,
-			driverId: driverInList.uuid,
-			driverShiftId: driverShift.uuid,
+			driverId: "",
+			driverShiftId: "",
 			state: "CANCELED"
 		}
 
@@ -718,25 +739,19 @@ io.on("connection", (socket) => {
 			data: newRideState
 		});
 
-		// Update lại rideList
-		rideList = rideList.map(item => {
-			if( item.uuid == uuid_ride ){
-				item.driver_id = insertRideStatusResult.driverId;
-				item.driver_shift_id = insertRideStatusResult.driverShiftId;
-				item.state = insertRideStatusResult.state;
-				item.state_time = insertRideStatusResult.stateDetail;
-				item.state_detail = insertRideStatusResult.stateDetail;
-			}
-			return item;
-		});
+		
+        // Bỏ cuốc xe khỏi danh sách
+		rideList = rideList.filter(item => item.uuid !== uuid_ride);
+		
 
-		// Gửi cho Call Agent
+		// Gửi cho Call Agent và Driver
 		socketUserList.forEach( item => {
-			if(item.role == "CallAgent") io.to(item.socket_id).emit("cancelSuccess", uuid_ride);
+			if(item.role == "CallAgent" || item.role == "Driver") io.to(item.socket_id).emit("cancelSuccess", uuid_ride);
 		});
 
-		// Gửi cho Driver
+		// Gửi cho Customer
 		io.to(socket.id).emit("cancelSuccess", uuid_ride);
+
 		return;
 	})
 	

@@ -10,6 +10,10 @@ Router.get('/', async (req, res) => {
     await RidestatusController.getAll(req, res);
 });
 
+Router.get('/getAllWithRide', async (req, res) => {
+    await RidestatusController.getAllWithRide(req, res);
+});
+
 Router.get('/:uuid', async (req, res) => {
     await RidestatusController.getByUuid(req, res);
 });

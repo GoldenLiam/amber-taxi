@@ -88,7 +88,49 @@ const SocketTransportationContextProvider = ({ children }) => {
 
         //
         getDrivershiftAndCarModel();
-        
+
+        /*
+        uuid: item.uuid,
+        full_name: item.fullName,
+        gender: item.gender,
+        phone: item.phone,
+        seat: item.seat,
+        ride_start_time: item.rideStartTime,
+        ride_end_time: null,
+        starting_point: item.startingPoint,
+        destination_point: item.destinationPoint,
+        distance: item.distance,
+        price: item.price,
+        note: item.note,
+
+        driver_id: ridestatusInDB.driverId,
+        driver_shift_id: ridestatusInDB.driverShiftId,
+        state: ridestatusInDB.state,
+        state_time: ridestatusInDB.stateTime,
+        state_detail: ridestatusInDB.stateDetail
+        */
+
+        socket.on("getRideNearbyDriver", (ride) => {
+            let originalRideForUserList = [...rideForUserList];
+            originalRideForUserList.push({
+                key: ride.uuid,
+                full_name: ride.full_name,
+                gender: ride.gender,
+                phone: ride.phone,
+                seat: ride.seat,
+                ride_start_time: ride.ride_start_time,
+                ride_end_time: ride.ride_end_time,
+                starting_point: ride.starting_point,
+                destination_point: ride.destination_point,
+                distance: ride.distance,
+                price: ride.price,
+                note: ride.note,
+            });
+
+            if (JSON.stringify(originalRideForUserList) != JSON.stringify(rideForUserList)){
+                setRideForUserList(originalRideForUserList)
+            }
+        })
 
         socket.on("acceptSuccess", (uuid_ride) => {
             setAcceptRideResult(true);
@@ -177,6 +219,10 @@ const SocketTransportationContextProvider = ({ children }) => {
         socket.emit('updateLocation', { current_location });
     };
 
+    const driverUpdateLocationToCustomer = (current_location, phone) => {
+        socket.emit('driverUpdateLocationToCustomer', { current_location, phone });
+    }
+
     const acceptRide = (uuid) => {
         socket.emit('acceptRide', uuid);
     }
@@ -185,7 +231,7 @@ const SocketTransportationContextProvider = ({ children }) => {
         socket.emit('pickRide', uuid);
     }
 
-    const denyRide = (uuid) => {
+    const denyRide = (uuid, reason_deny) => {
         socket.emit('denyRide', uuid);
     }
 
@@ -202,6 +248,7 @@ const SocketTransportationContextProvider = ({ children }) => {
     return(
         <SocketTransportationContext.Provider value={{
             myself,
+            driverUpdateLocationToCustomer,
             updateLocation,
             updateRideList,
             rideList,

@@ -74,7 +74,7 @@ class DrivershiftService extends BaseService {
             return {
                 error: true,
                 statusCode: 500,
-                message: error.errmsg || "Not able to get all item",
+                message: error.errmsg || "Not able to get item by driverId",
                 errors: error.errors
             };
         }

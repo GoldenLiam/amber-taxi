@@ -5,6 +5,40 @@ class RatingService extends BaseService {
     constructor(model) {
         super(model);
     }
+    
+
+    async getDriverRatingByDriverId(driverId){
+        try {
+            let items = await this.model.aggregate({
+                where: {
+                    driverId
+                },
+                _avg: {
+                    ratingValue: true,
+                },
+                _count: {
+                    driverId: true,
+                },
+            });
+
+            return{
+                error: false,
+                statusCode: 200, //code 200 get success
+                data: items
+            };
+
+        } catch (error) {
+            
+            return {
+                error: true,
+                statusCode: 500,
+                message: error.errmsg || "Not able to get item by driverId",
+                errors: error.errors
+            };
+
+        }
+    }
+
 
     async getAllByDriverId(driverId){
         try {
@@ -13,9 +47,10 @@ class RatingService extends BaseService {
                     driverId
                 },
                 include:{
-                    user_rating_driverIdTouser: {
+                    user_rating_userIdTouser: {
                         select: {
                             fullName: true,
+                            phone: true
                         }
                     }
                 },
@@ -31,7 +66,7 @@ class RatingService extends BaseService {
             };
 
         } catch (error) {
-            console.log(error)
+            
             return {
                 error: true,
                 statusCode: 500,

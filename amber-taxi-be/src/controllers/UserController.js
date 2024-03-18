@@ -11,6 +11,26 @@ class UserController extends BaseController {
     super(service);
   }
 
+  async userRegister(req, res) {
+
+    let response = await this.service.register(req.body);
+
+    //If get error
+    if( response.error ){
+      return res.status(response.statusCode).json({
+        "decription": response.message,
+        "data" : "",
+        "dataType" : "JSON",
+      });
+    }
+
+    return res.status(response.statusCode).json({
+      "decription": "Success register",
+      "data" : response.data,
+      "dataType" : "JSON",
+    });
+  }
+
   async getUserByPhone(req, res) {
     const { phone } = req.params;
 

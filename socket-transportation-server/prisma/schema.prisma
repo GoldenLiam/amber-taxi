@@ -22,10 +22,10 @@ model call {
 }
 
 model callcenteragent {
-  uuid   String  @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
-  userId String  @db.VarChar(256)
-  state  Boolean @default(false)
-  user   user    @relation(fields: [userId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "callcenteragent_ibfk_1")
+  uuid   String @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
+  userId String @db.VarChar(256)
+  state  String @default("OFFLINE") @db.VarChar(12)
+  user   user   @relation(fields: [userId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "callcenteragent_ibfk_1")
 
   @@index([userId], map: "userId")
 }
@@ -45,6 +45,7 @@ model car {
 model customer {
   uuid   String  @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
   userId String? @db.VarChar(256)
+  state  String  @default("OFFLINE") @db.VarChar(12)
   user   user?   @relation(fields: [userId], references: [uuid], onDelete: Cascade, onUpdate: Restrict, map: "customer_ibfk_1")
 
   @@index([userId], map: "userId")
@@ -149,9 +150,9 @@ model user {
   uuid                             String            @id @default(dbgenerated("(uuid())")) @db.VarChar(256)
   fullName                         String            @db.VarChar(64)
   gender                           String?           @db.VarChar(6)
-  address                          String            @db.VarChar(256)
+  address                          String?           @db.VarChar(256)
   phone                            String            @unique(map: "phone") @db.VarChar(11)
-  email                            String            @unique(map: "email") @db.VarChar(128)
+  email                            String?           @unique(map: "email") @db.VarChar(128)
   password                         String            @db.VarChar(128)
   role                             String            @db.VarChar(24)
   dob                              DateTime          @db.Date

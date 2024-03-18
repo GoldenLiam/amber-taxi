@@ -81,7 +81,7 @@ function Home() {
 
                                         <p className="mx-2 pb-3 mb-0 small lh-sm border-bottom w-100">
                                             <strong className="d-block text-gray-dark">
-                                                {rating.user_rating_driverIdTouser.fullName}
+                                                {rating.user_rating_userIdTouser.fullName}
                                                 
                                                 <span className="mx-2 text-warning">
                                                     {rating.ratingValue - 1 >= 0 ? <i className="bi bi-star-fill"></i> : <i className="bi bi-star"></i>}

@@ -1,5 +1,7 @@
 export { default as handlingDateTime } from "./lib/HandlingDateTime";
 export { default as calculateDistance } from "./lib/CalculateDistance";
+export { default as handlingCurrency } from "./lib/HandlingCurrency";
+
 
 /*
 helper.js is the home for any helper functions, like calculating offset for paginatio

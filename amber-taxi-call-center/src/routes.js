@@ -33,6 +33,8 @@ import Calling from "layouts/calling";
 import CreateRide from "layouts/create-ride";
 import RideDetail from "layouts/ride-detail";
 import CreateDriverShift from "layouts/create-driver-shift";
+import TableDriverShift from "layouts/table-driver-shift";
+import TableRide from "layouts/table-ride";
 
 // Soft UI Dashboard React icons
 import Shop from "examples/Icons/Shop";
@@ -50,7 +52,6 @@ import { SocketTransportationContextProvider } from "sockets/SocketTransportatio
 
 //Boostrap icon 5
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import TableDriverShift from "layouts/table-driver-shift";
 
 const routes = [
   {
@@ -112,7 +113,10 @@ const routes = [
     key: "create-ride",
     route: "/create-ride",
     icon: <i className="bi bi-pin-map-fill" style={{color: "#3a416f", fontSize: "12px"}}></i>,
-    component: <CreateRide />,
+    component: 
+    <SocketTransportationContextProvider>
+      <CreateRide />
+    </SocketTransportationContextProvider>,
     noCollapse: true,
   },
 
@@ -122,7 +126,7 @@ const routes = [
     key: "list-ride",
     route: "/list-ride",
     icon: <i className="bi bi-ui-radios" style={{color: "#3a416f", fontSize: "12px"}}></i>,
-    component: <></>,
+    component: <><TableRide /></>,
     noCollapse: true,
   },
 

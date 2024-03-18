@@ -12,6 +12,9 @@ const socket = io('http://localhost:5010', { autoConnect: false });
 
 
 const SocketTransportationContextProvider = ({ children }) => {
+    
+    const [socketDriver, setSocketDriver] = useState(null);
+
     const [rideList, setRideList] = useState([]);
     const [drivershift, setDrivershift] = useState(null);
     const [rideForUserList, setRideForUserList] = useState([]);
@@ -103,48 +106,36 @@ const SocketTransportationContextProvider = ({ children }) => {
             setAcceptRideResult(true);
             setAcceptRideResultReason("Nhận cuốc thành công vui lòng đợi 2s");
 
-            // Chờ 2s để điều hướng
-            setTimeout(() => {
+            // // Chờ 2s để điều hướng
+            // setTimeout(() => {
                 
-                // Điều hướng đến trang chi tiết chuyến đi
-                window.location.href = `/trip/${uuid_ride}`;
+            //     // Điều hướng đến trang chi tiết chuyến đi
+            //     window.location.href = `/trip/${uuid_ride}`;
         
-            }, 2000);
+            // }, 2000);
         })
 
-        socket.on("acceptFail", (message) => {
-            setAcceptRideResult(false);
-            setAcceptRideResultReason(message);
-        })
 
         socket.on("pickSuccess", (uuid) => {
             setPickRideResult(true);
             setPickRideResultReason("Chuyển sang trạng thái thực hiện cuốc");
         });
-
-        socket.on("pickFail", (uuid_ride) => {
-            setPickRideResult(false);
-            setPickRideResultReason("Không thể đón khách hàng");
-        });
+        
 
         socket.on("denySuccess", (uuid_ride) => {
             setDenyRideResult(true);
             setDenyRideResultReason("Bạn đã hủy chuyến đi");
 
-            // Chờ 2s để điều hướng
-            setTimeout(() => {
+            // // Chờ 2s để điều hướng
+            // setTimeout(() => {
                 
-                // Điều hướng đến trang chi tiết chuyến đi
-                window.location.href = `/trip-detail/${uuid_ride}`;
+            //     // Điều hướng đến trang chi tiết chuyến đi
+            //     window.location.href = `/trip-detail/${uuid_ride}`;
         
-            }, 2000);
+            // }, 2000);
         });
 
-        socket.on("denyFail", (uuid_ride) => {
-            setDenyRideResult(false);
-            setDenyRideResultReason("Bạn không thể hủy chuyến đi khi đã ở trạng thái này");
-        })
-
+        
         socket.on("completeSuccess", (uuid_ride) => {
             setCompleteRideResult(true);
             setCompleteRideResultReason("Chúc mừng cuốc xe đã hoàn thành, vui lòng đợi 2s");
@@ -158,22 +149,24 @@ const SocketTransportationContextProvider = ({ children }) => {
             }, 2000);
         });
 
-        socket.on("completeFail", (uuid_ride) => {
-            setCompleteRideResult(false);
-            setCompleteRideResultReason("Chưa thể hoàn thành chuyên đi");
-        });
 
-
-
-        socket.on("sendRideList", (newRideList) => {
-            //console.log("newRideList")
-            //console.log(newRideList)
-    
-            // Chắc chắn là phải khác nhau mới set lại list
-            if( JSON.stringify(rideList) != JSON.stringify(newRideList) ){
-                setRideList( JSON.parse(JSON.stringify(newRideList)) );
+        socket.on("getDriverUpdateLocationToCustomer", (socketDriverUser) => {
+            console.log(socketDriverUser)
+            if(JSON.stringify(socketDriverUser) != JSON.stringify(socketDriver)){
+                setSocketDriver(socketDriverUser);
             }
         })
+
+
+        // socket.on("sendRideList", (newRideList) => {
+        //     //console.log("newRideList")
+        //     //console.log(newRideList)
+    
+        //     // Chắc chắn là phải khác nhau mới set lại list
+        //     if( JSON.stringify(rideList) != JSON.stringify(newRideList) ){
+        //         setRideList( JSON.parse(JSON.stringify(newRideList)) );
+        //     }
+        // })
 
         return () => {
             socket.disconnect();
@@ -181,29 +174,17 @@ const SocketTransportationContextProvider = ({ children }) => {
     }, []);
 
 
-    const bookRide = (uuid) => {
-        socket.emit('bookRide', uuid);
-    }
+    // const bookRide = (uuid) => {
+    //     socket.emit('bookRide', uuid);
+    // }
 
     //Hàm trả gửi location cho socket
     const updateLocation = (current_location) => {
         socket.emit('updateLocation', { current_location });
     };
 
-    const acceptRide = (uuid) => {
-        socket.emit('acceptRide', uuid);
-    }
-
-    const pickRide = (uuid) => {
-        socket.emit('pickRide', uuid);
-    }
-
-    const denyRide = (uuid) => {
-        socket.emit('denyRide', uuid);
-    }
-
-    const completeRide = (uuid) => {
-        socket.emit('completeRide', uuid);
+    const cancelRide = (uuid) => {
+        socket.emit('cancelRide', uuid);
     }
 
     const updateRideList = () => {
@@ -215,29 +196,27 @@ const SocketTransportationContextProvider = ({ children }) => {
     return(
         <SocketTransportationContext.Provider value={{
             myself,
+            socketDriver,
+
             updateLocation,
             updateRideList,
             rideList,
             drivershift,
             rideForUserList,
-
-            bookRide,
-
-            acceptRide,
+            
             acceptRideResult,
             acceptRideResultReason,
 
-            pickRide,
             pickRideResult,
             pickRideResultReason,
 
-            denyRide,
             denyRideResult,
             denyRideResultReason,
 
-            completeRide,
             completeRideResult,
             completeRideResultReason, 
+
+            cancelRide
         }}>
             {children}
         </SocketTransportationContext.Provider>

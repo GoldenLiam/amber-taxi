@@ -18,6 +18,10 @@ Router.get('/getAllByDriverId/:driverId', async (req, res) => {
     await RatingController.getAllByDriverId(req, res);
 });
 
+Router.get('/getDriverRatingByDriverId/:driverId', async (req, res) => {
+    await RatingController.getDriverRatingByDriverId(req, res);
+});
+
 Router.get('/getByRideId/:rideId', async (req, res) => {
     await RatingController.getByRideId(req, res);
 });

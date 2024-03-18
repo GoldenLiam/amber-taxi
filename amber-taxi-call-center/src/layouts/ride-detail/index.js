@@ -50,6 +50,7 @@ import { SocketTransportationContext } from 'sockets/SocketTransportationContext
 import { beAPI } from 'api';
 import { handlingDateTime } from 'utils';
 import { convertISODateStringToDMYTimeFormat } from 'utils/lib/HandlingDateTime';
+import { handlingCurrency } from 'utils';
 
 
 // Create custom marker icon
@@ -569,7 +570,7 @@ function RideDetail() {
                                     <Descriptions.Item label="Điểm đón">{ride.startingPoint.split(";")[2]}</Descriptions.Item>
                                     <Descriptions.Item label="Điến đến">{ride.destinationPoint.split(";")[2]}</Descriptions.Item>
                                     <Descriptions.Item label="Quãng đường">{ride.distance + " km"}</Descriptions.Item>
-                                    <Descriptions.Item label="Giá tiền">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(ride.price)}</Descriptions.Item>
+                                    <Descriptions.Item label="Giá tiền">{ handlingCurrency.convertFloatNumberToVNDFormat(ride.price) }</Descriptions.Item>
                                 </Descriptions>
                             </div>
                         </SoftBox>
